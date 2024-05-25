@@ -2,12 +2,13 @@ import argparse
 import mido
 from mido import MidiFile, MidiTrack, Message
 
-def get_scale_root(root_input):
+def get_scale_root(root_input, octave=4):
     """
     Converts the scale root input to a MIDI note number.
 
     Parameters:
     - root_input (str): The input representing the scale root (e.g., 'C', 'Cmaj', 'D#', 'D#maj').
+    - octave (int): The octave number. Default is 4.
 
     Returns:
     - int: The MIDI note number corresponding to the scale root.
@@ -29,7 +30,7 @@ def get_scale_root(root_input):
         semitone_offset += modifiers[modifier]
 
     # Convert to MIDI note number
-    scale_root = 12 + semitone_offset  # Start from C1
+    scale_root = 12 * (octave + 1) + semitone_offset  # Start from C4
     return scale_root
 
 def get_chord_notes(scale_root, degree, chord_type='major'):
