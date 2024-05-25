@@ -70,10 +70,17 @@ def parse_arguments():
     parser.add_argument('--scale-root', type=int, required=True, help='Root note of the scale (MIDI note number)')
     parser.add_argument('--chord-degrees', type=int, nargs='+', required=True, help='Chord degrees in the scale (e.g., 6 4 1 5)')
     parser.add_argument('--chord-types', type=str, nargs='*', help='Chord types corresponding to the degrees (e.g., minor major major major)')
-    parser.add_argument('--output-file', type=str, required=True, help='Output MIDI file name')
-    parser.add_argument('--chord-duration', type=int, required=True, help='Duration of each chord in ticks')
+    parser.add_argument('--output-file', type=str, default=None, help='Output MIDI file name. If skipped, filename will be generated automatically.')
+    parser.add_argument('--chord-duration', type=int, default=960, help='Duration of each chord in ticks. Default is 960 ticks.')
     
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    # Generate filename if not provided
+    if args.output_file is None:
+        chord_degrees_str = ''.join(str(deg) for deg in args.chord_degrees)
+        args.output_file = f"cmaj_{chord_degrees_str}.midi"
+
+    return args
 
 if __name__ == '__main__':
     args = parse_arguments()
