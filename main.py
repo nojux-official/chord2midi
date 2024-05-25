@@ -1,3 +1,4 @@
+import argparse
 import mido
 from mido import MidiFile, MidiTrack, Message
 
@@ -42,30 +43,35 @@ def get_chord_notes(scale_root, degree, chord_type='major'):
 
     return chord_notes_midi
 
-# Create a new MIDI file
-mid = MidiFile()
-track = MidiTrack()
-mid.tracks.append(track)
+def create_midi(scale_root, chord_degrees, chord_types, output_file, chord_duration):
+    # Create a new MIDI file
+    mid = MidiFile()
+    track = MidiTrack()
+    mid.tracks.append(track)
 
-# Define the chord progression (6, 4, 1, 5)
-chord_degrees = [6, 4, 1, 5]
-chord_types = ['minor', 'major', 'major', 'major']  # vi, IV, I, V chords
-scale_root = 60  # C4 in MIDI note numbers
+    # Add chords to the track
+    for degree, chord_type in zip(chord_degrees, chord_types):
+        chord_notes = get_chord_notes(scale_root, degree, chord_type)
+        for note in chord_notes:
+            track.append(Message('note_on', note=note, velocity=64, time=0))
+        track.append(Message('note_off', note=chord_notes[0], velocity=64, time=chord_duration))
+        for note in chord_notes[1:]:
+            track.append(Message('note_off', note=note, velocity=64, time=0))
 
-# Duration of each chord in ticks (e.g., 480 ticks per quarter note)
-chord_duration = 960
+    # Save the MIDI file
+    mid.save(output_file)
+    print(f'MIDI file saved as {output_file}')
 
-# Add chords to the track
-for degree, chord_type in zip(chord_degrees, chord_types):
-    chord_notes = get_chord_notes(scale_root, degree, chord_type)
-    for note in chord_notes:
-        track.append(Message('note_on', note=note, velocity=64, time=0))
-    track.append(Message('note_off', note=chord_notes[0], velocity=64, time=chord_duration))
-    for note in chord_notes[1:]:
-        track.append(Message('note_off', note=note, velocity=64, time=0))
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Generate a MIDI file with a chord progression.')
+    parser.add_argument('--scale-root', type=int, required=True, help='Root note of the scale (MIDI note number)')
+    parser.add_argument('--chord-degrees', type=int, nargs='+', required=True, help='Chord degrees in the scale (e.g., 6 4 1 5)')
+    parser.add_argument('--chord-types', type=str, nargs='+', required=True, help='Chord types corresponding to the degrees (e.g., minor major major major)')
+    parser.add_argument('--output-file', type=str, required=True, help='Output MIDI file name')
+    parser.add_argument('--chord-duration', type=int, required=True, help='Duration of each chord in ticks')
+    
+    return parser.parse_args()
 
-# Save the MIDI file
-output_file = 'chord_progression.mid'
-mid.save(output_file)
-
-print(f'MIDI file saved as {output_file}')
+if __name__ == '__main__':
+    args = parse_arguments()
+    create_midi(args.scale_root, args.chord_degrees, args.chord_types, args.output_file, args.chord_duration)
