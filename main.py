@@ -32,8 +32,11 @@ def get_chord_notes(scale_root, degree, chord_type='major'):
     elif chord_type == 'minor':
         # Minor triad: root, minor third, perfect fifth
         chord_intervals = [0, 3, 7]
+    elif chord_type == 'diminished':
+        # Diminished triad: root, minor third, diminished fifth
+        chord_intervals = [0, 3, 6]
     else:
-        raise ValueError("Unsupported chord type. Use 'major' or 'minor'.")
+        raise ValueError("Unsupported chord type. Use 'major', 'minor', or 'diminished'.")
 
     # Calculate the chord notes
     chord_notes = [(scale_notes[degree_index] + interval) % 12 for interval in chord_intervals]
@@ -66,7 +69,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate a MIDI file with a chord progression.')
     parser.add_argument('--scale-root', type=int, required=True, help='Root note of the scale (MIDI note number)')
     parser.add_argument('--chord-degrees', type=int, nargs='+', required=True, help='Chord degrees in the scale (e.g., 6 4 1 5)')
-    parser.add_argument('--chord-types', type=str, nargs='+', required=True, help='Chord types corresponding to the degrees (e.g., minor major major major)')
+    parser.add_argument('--chord-types', type=str, nargs='*', help='Chord types corresponding to the degrees (e.g., minor major major major)')
     parser.add_argument('--output-file', type=str, required=True, help='Output MIDI file name')
     parser.add_argument('--chord-duration', type=int, required=True, help='Duration of each chord in ticks')
     
@@ -74,4 +77,22 @@ def parse_arguments():
 
 if __name__ == '__main__':
     args = parse_arguments()
-    create_midi(args.scale_root, args.chord_degrees, args.chord_types, args.output_file, args.chord_duration)
+
+    if args.chord_types:
+        if len(args.chord_degrees) != len(args.chord_types):
+            raise ValueError("Number of chord types should match the number of chord degrees.")
+        chord_types = args.chord_types
+    else:
+        # Automatically set chord types if not provided
+        chord_types = []
+        for degree in args.chord_degrees:
+            if degree == 1 or degree == 4 or degree == 5:
+                chord_types.append('major')
+            elif degree == 2 or degree == 3 or degree == 6:
+                chord_types.append('minor')
+            elif degree == 7:
+                chord_types.append('diminished')
+            else:
+                raise ValueError("Unsupported chord degree.")
+
+    create_midi(args.scale_root, args.chord_degrees, chord_types, args.output_file, args.chord_duration)
