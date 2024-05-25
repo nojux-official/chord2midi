@@ -2,6 +2,36 @@ import argparse
 import mido
 from mido import MidiFile, MidiTrack, Message
 
+def get_scale_root(root_input):
+    """
+    Converts the scale root input to a MIDI note number.
+
+    Parameters:
+    - root_input (str): The input representing the scale root (e.g., 'C', 'Cmaj', 'D#', 'D#maj').
+
+    Returns:
+    - int: The MIDI note number corresponding to the scale root.
+    """
+
+    # Define mappings of letters to semitones
+    letter_to_semitone = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
+    modifiers = {'#': 1, 'b': -1}
+
+    # Parse the root input
+    letter = root_input[0].upper()
+    modifier = ''
+    if len(root_input) > 1:
+        modifier = root_input[1]
+    
+    # Calculate the semitone offset
+    semitone_offset = letter_to_semitone[letter]
+    if modifier in modifiers:
+        semitone_offset += modifiers[modifier]
+
+    # Convert to MIDI note number
+    scale_root = 12 + semitone_offset  # Start from C1
+    return scale_root
+
 def get_chord_notes(scale_root, degree, chord_type='major'):
     """
     Returns the notes for a specified chord degree in a major scale.
@@ -67,7 +97,7 @@ def create_midi(scale_root, chord_degrees, chord_types, output_file, chord_durat
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate a MIDI file with a chord progression.')
-    parser.add_argument('--scale-root', type=int, required=True, help='Root note of the scale (MIDI note number)')
+    parser.add_argument('--scale-root', type=str, required=True, help='Root note of the scale (e.g., C, Cmaj)')
     parser.add_argument('--chord-degrees', type=int, nargs='+', required=True, help='Chord degrees in the scale (e.g., 6 4 1 5)')
     parser.add_argument('--chord-types', type=str, nargs='*', help='Chord types corresponding to the degrees (e.g., minor major major major)')
     parser.add_argument('--output-file', type=str, default=None, help='Output MIDI file name. If skipped, filename will be generated automatically.')
@@ -78,7 +108,10 @@ def parse_arguments():
     # Generate filename if not provided
     if args.output_file is None:
         chord_degrees_str = ''.join(str(deg) for deg in args.chord_degrees)
-        args.output_file = f"cmaj_{chord_degrees_str}.midi"
+        args.output_file = f"{args.scale_root.lower()}_{chord_degrees_str}.midi"
+
+    # Convert scale root input to MIDI note number
+    args.scale_root = get_scale_root(args.scale_root)
 
     return args
 
