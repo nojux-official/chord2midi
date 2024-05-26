@@ -4,7 +4,7 @@ This Python script generates a MIDI file with a chord progression based on the s
 
 ## Usage
 
-`python main.py --scale-root C --chord-degrees 1 4 5 --output-file cmaj_145.midi`
+`python generate_midi.py --scale-root C --chord-degrees 1 4 5 --output-file cmaj_145.midi`
 
 This command will generate a MIDI file named cmaj_145.midi with a chord progression of C major, F major, and G major chords.
 
