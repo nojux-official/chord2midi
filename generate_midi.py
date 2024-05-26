@@ -96,6 +96,10 @@ def create_midi(scale_root, chord_degrees, chord_types, output_file, chord_durat
     mid.save(output_file)
     print(f'MIDI file saved as {output_file}')
 
+def auto_generate_filename(scale_root, chord_degrees):
+    chord_degrees_str = ''.join(str(deg) for deg in chord_degrees)
+    return f"{scale_root.lower()}_{chord_degrees_str}.midi"
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate a MIDI file with a chord progression.')
     parser.add_argument('--scale-root', type=str, required=True, help='Root note of the scale (e.g., C, Cmaj)')
@@ -108,8 +112,7 @@ def parse_arguments():
 
     # Generate filename if not provided
     if args.output_file is None:
-        chord_degrees_str = ''.join(str(deg) for deg in args.chord_degrees)
-        args.output_file = f"{args.scale_root.lower()}_{chord_degrees_str}.midi"
+        args.output_file = auto_generate_filename(args.scale_root, args.chord_degrees)
 
     # Convert scale root input to MIDI note number
     args.scale_root = get_scale_root(args.scale_root)
