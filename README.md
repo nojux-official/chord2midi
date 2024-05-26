@@ -34,8 +34,10 @@ Or directly via a browser with the following url:
 * chord_duration: (Optional) Duration of each chord in ticks. Default is 960 ticks.
 
 ## Dependencies
-Python 3.x
-mido library (Install using `pip install mido`)
+* Python 3.x version
+* mido and flask libraries (Install using `pip install -r requirements.txt`)
+
+Tested with Python 3.10.7
 
 ## Acknowledgements
 This project acknowledges ChatGPT's role in its creation. It aimed to check ChatGPT's coding capabilities for quick project creation.
