@@ -75,6 +75,10 @@ def get_chord_notes(scale_root, degree, chord_type='major'):
     # Convert chord notes to MIDI note numbers
     chord_notes_midi = [(scale_root + note) for note in chord_notes]
 
+    # Add the bass note an octave lower
+    bass_note = chord_notes_midi[0] - 12
+    chord_notes_midi.insert(0, bass_note)
+
     return chord_notes_midi
 
 def create_midi(scale_root, chord_degrees, chord_types, output_file, chord_duration):
