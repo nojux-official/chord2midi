@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file, render_template_string
+from flask import Flask, request, jsonify, send_file, render_template_string, url_for
 import os
 from generate_midi import get_scale_root, create_midi, auto_generate_filename
 
@@ -13,11 +13,12 @@ def index():
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
             <title>Chord Progression MIDI Generator</title>
+            <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
           </head>
           <body>
             <div class="container">
               <h1>Chord Progression MIDI Generator</h1>
-              <form action="/generate_midi" method="get">
+              <form id="midiForm" action="/generate_midi" method="get">
                 <div>
                   <label for="scale_root">Scale Root:</label>
                   <input type="text" id="scale_root" name="scale_root" value="C">
@@ -40,7 +41,36 @@ def index():
                 </div>
                 <button type="submit">Generate MIDI</button>
               </form>
+              <div id="midiPreview" style="display:none;">
+                <h2>MIDI Preview</h2>
+                <midi-player id="midiPlayer" sound-font visualizer="#myVisualizer"></midi-player>
+                <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
+                <button id="downloadButton">Download MIDI</button>
+              </div>
             </div>
+            <script>
+              document.getElementById('midiForm').onsubmit = function(event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+                const queryString = new URLSearchParams(formData).toString();
+                fetch('/generate_midi?' + queryString)
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.error) {
+                      alert(data.error);
+                    } else {
+                      document.getElementById('midiPreview').style.display = 'block';
+                      const midiUrl = data.midi_url;
+                      document.getElementById('midiPlayer').src = midiUrl;
+                      document.getElementById('downloadButton').onclick = function() {
+                        window.location.href = midiUrl;
+                      };
+                    }
+                  })
+                  .catch(error => console.error('Error:', error));
+              };
+            </script>
           </body>
         </html>
     ''')
@@ -79,7 +109,12 @@ def generate_midi():
     
     create_midi(scale_root_midi, chord_degrees, chord_types, output_file, chord_duration)
     
-    return send_file(output_file, as_attachment=True)
+    midi_url = url_for('get_midi_file', filename=output_file)
+    return jsonify({'midi_url': midi_url})
+
+@app.route('/midi_files/<filename>')
+def get_midi_file(filename):
+    return send_file(filename, as_attachment=False)
 
 if __name__ == '__main__':
     app.run(debug=True)
