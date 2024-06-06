@@ -8,6 +8,10 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+@app.route('/games')
+def games():
+    return render_template('games.html')
+
 @app.route('/generate_midi', methods=['GET'])
 def generate_midi():
     scale_root = request.args.get('scale_root', 'C').strip()
