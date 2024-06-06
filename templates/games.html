@@ -17,28 +17,50 @@
                 <div class="card">
                     <div class="card-image">
                         <img src="https://via.placeholder.com/300x200" alt="Game Image">
-                        <span class="card-title">Game 1</span>
+                        <span class="card-title">Guess Progression</span>
                         <a class="btn-floating halfway-fab waves-effect waves-light red modal-trigger" href="#game1-modal">
                             <i class="fas fa-info"></i>
                         </a>
                     </div>
                     <div class="card-content">
-                        <p>Short description of Game 1.</p>
+                        <p>Guess chord progressions in this fun game!</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Game 1 Modal Structure -->
+
+    <!-- Guess Progression Modal Structure -->
     <div id="game1-modal" class="modal">
         <div class="modal-content">
-            <h4>Game 1</h4>
-            <p>Here is the detailed description of Game 1. You can add more information about the game here.</p>
+            <h4>Guess Progression</h4>
+            <div class="row">
+                <form class="col s12">
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <select id="tonation">
+                                <option value="" disabled selected>Choose tonation</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                                <option value="E">E</option>
+                                <!-- Add more tonations as needed -->
+                            </select>
+                            <label for="tonation">Tonation</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <input id="quiz-count" type="number" min="1" max="10" value="5">
+                            <label for="quiz-count">Number of Quizzes</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
         <div class="modal-footer">
-            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+            <a href="#!" id="start-game" class="waves-effect waves-light btn">Start Game</a>
         </div>
     </div>
+
     <!-- Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <!-- Initialize Modals -->
@@ -46,6 +68,20 @@
         document.addEventListener('DOMContentLoaded', function() {
             var elems = document.querySelectorAll('.modal');
             var instances = M.Modal.init(elems);
+
+            // Initialize select dropdown
+            var selectElems = document.querySelectorAll('select');
+            var instances = M.FormSelect.init(selectElems);
+        });
+
+        // Handle start game button click
+        document.getElementById('start-game').addEventListener('click', function() {
+            var tonation = document.getElementById('tonation').value;
+            var quizCount = document.getElementById('quiz-count').value;
+            // You can perform further actions here, such as starting the game with selected options
+            // For now, we'll just log the selected options
+            console.log('Tonation:', tonation);
+            console.log('Quiz Count:', quizCount);
         });
     </script>
 </body>
