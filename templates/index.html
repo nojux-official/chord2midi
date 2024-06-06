@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <!-- Font Awesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
+
 <body>
     <div class="container">
         <h1 class="center-align"><i class="fas fa-music"></i> Chord Progression MIDI Generator</h1>
@@ -21,14 +23,16 @@
                 </div>
                 <div class="input-field col s6">
                     <i class="fas fa-list-ol prefix"></i>
-                    <input id="chord_degrees" name="chord_degrees" type="text" placeholder="e.g., 1,4,5" class="validate">
+                    <input id="chord_degrees" name="chord_degrees" type="text" placeholder="e.g., 1,4,5"
+                        class="validate">
                     <label for="chord_degrees">Chord Degrees</label>
                 </div>
             </div>
             <div class="row">
                 <div class="input-field col s6">
                     <i class="fas fa-chord prefix"></i>
-                    <input id="chord_types" name="chord_types" type="text" placeholder="e.g., major,major,major" class="validate">
+                    <input id="chord_types" name="chord_types" type="text" placeholder="e.g., major,major,major"
+                        class="validate">
                     <label for="chord_types">Chord Types (optional)</label>
                 </div>
                 <div class="input-field col s6">
@@ -40,7 +44,8 @@
             <div class="row">
                 <div class="input-field col s12">
                     <i class="fas fa-file-alt prefix"></i>
-                    <input id="output_file" name="output_file" type="text" placeholder="e.g., my_chords.midi" class="validate">
+                    <input id="output_file" name="output_file" type="text" placeholder="e.g., my_chords.midi"
+                        class="validate">
                     <label for="output_file">Output File Name (optional)</label>
                 </div>
             </div>
@@ -50,28 +55,40 @@
                 </button>
             </div>
         </form>
-        <div id="midi-preview" class="center-align" style="margin-top: 20px;"></div>
+        <div id="midiPreview" class="center-align" style="margin-top: 20px; display:none;">
+            <midi-player id="midiPlayer" sound-font visualizer="#myVisualizer"></midi-player>
+            <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
+            <button id="downloadButton"><i class="fas fa-download"></i> Download MIDI</button>
+        </div>
     </div>
     <!-- Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <!-- Tone.js and Magenta.js -->
-    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
+    <script
+        src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
     <script>
-        document.querySelector('form').onsubmit = function(event) {
+        document.querySelector('form').onsubmit = function (event) {
             event.preventDefault();
-            const params = new URLSearchParams(new FormData(this)).toString();
-            fetch(`/generate_midi?${params}`)
-                .then(response => response.blob())
-                .then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const previewContainer = document.getElementById('midi-preview');
-                    previewContainer.innerHTML = `
-                        <midi-player src="${url}" sound-font visualizer="#myVisualizer"></midi-player>
-                        <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
-                        <a href="${url}" download="generated_midi.midi" class="btn waves-effect waves-light"><i class="fas fa-download"></i> Download MIDI</a>
-                    `;
-                });
+            const form = event.target;
+            const formData = new FormData(form);
+            const queryString = new URLSearchParams(formData).toString();
+            fetch('/generate_midi?' + queryString)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('midiPreview').style.display = 'block';
+                        const midiUrl = data.midi_url;
+                        document.getElementById('midiPlayer').src = midiUrl;
+                        document.getElementById('downloadButton').onclick = function () {
+                            window.location.href = midiUrl;
+                        };
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         };
     </script>
 </body>
+
 </html>
