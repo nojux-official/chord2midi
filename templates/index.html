@@ -1,87 +1,77 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chord Progression MIDI Generator</title>
-    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
-    <!-- Font Awesome CDN -->
+    <!-- Materialize CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <!-- Font Awesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-      .form-group {
-        margin-bottom: 15px;
-      }
-      label {
-        display: block;
-        margin-bottom: 5px;
-      }
-      input {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-      }
-      button {
-        padding: 10px 15px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <h1><i class="fas fa-music"></i> Chord Progression MIDI Generator</h1>
-      <form id="midiForm" action="/generate_midi" method="get">
-        <div class="form-group">
-          <label for="scale_root"><i class="fas fa-keyboard"></i> Scale Root:</label>
-          <input type="text" id="scale_root" name="scale_root" value="C">
-        </div>
-        <div class="form-group">
-          <label for="chord_degrees"><i class="fas fa-chord"></i> Chord Degrees:</label>
-          <input type="text" id="chord_degrees" name="chord_degrees" placeholder="e.g., 1,4,5">
-        </div>
-        <div class="form-group">
-          <label for="chord_types"><i class="fas fa-chord"></i> Chord Types (optional):</label>
-          <input type="text" id="chord_types" name="chord_types" placeholder="e.g., major,major,major">
-        </div>
-        <div class="form-group">
-          <label for="chord_duration"><i class="fas fa-clock"></i> Chord Duration:</label>
-          <input type="number" id="chord_duration" name="chord_duration" value="960">
-        </div>
-        <div class="form-group">
-          <label for="output_file"><i class="fas fa-file-alt"></i> Output File Name (optional):</label>
-          <input type="text" id="output_file" name="output_file" placeholder="e.g., my_chords.midi">
-        </div>
-        <button type="submit"><i class="fas fa-file-export"></i> Generate MIDI</button>
-      </form>
-      <div id="midiPreview" style="display:none;">
-        <h2><i class="fas fa-play"></i> MIDI Preview</h2>
-        <midi-player id="midiPlayer" sound-font visualizer="#myVisualizer"></midi-player>
-        <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
-        <button id="downloadButton"><i class="fas fa-download"></i> Download MIDI</button>
-      </div>
+        <h1 class="center-align"><i class="fas fa-music"></i> Chord Progression MIDI Generator</h1>
+        <form action="/generate_midi" method="get" class="col s12">
+            <div class="row">
+                <div class="input-field col s6">
+                    <i class="fas fa-music prefix"></i>
+                    <input id="scale_root" name="scale_root" type="text" value="C" class="validate">
+                    <label for="scale_root">Scale Root</label>
+                </div>
+                <div class="input-field col s6">
+                    <i class="fas fa-list-ol prefix"></i>
+                    <input id="chord_degrees" name="chord_degrees" type="text" placeholder="e.g., 1,4,5" class="validate">
+                    <label for="chord_degrees">Chord Degrees</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s6">
+                    <i class="fas fa-chord prefix"></i>
+                    <input id="chord_types" name="chord_types" type="text" placeholder="e.g., major,major,major" class="validate">
+                    <label for="chord_types">Chord Types (optional)</label>
+                </div>
+                <div class="input-field col s6">
+                    <i class="fas fa-clock prefix"></i>
+                    <input id="chord_duration" name="chord_duration" type="number" value="960" class="validate">
+                    <label for="chord_duration">Chord Duration</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <i class="fas fa-file-alt prefix"></i>
+                    <input id="output_file" name="output_file" type="text" placeholder="e.g., my_chords.midi" class="validate">
+                    <label for="output_file">Output File Name (optional)</label>
+                </div>
+            </div>
+            <div class="row center-align">
+                <button class="btn waves-effect waves-light" type="submit">
+                    <i class="fas fa-file-audio"></i> Generate MIDI
+                </button>
+            </div>
+        </form>
+        <div id="midi-preview" class="center-align" style="margin-top: 20px;"></div>
     </div>
+    <!-- Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <!-- Tone.js and Magenta.js -->
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
     <script>
-      document.getElementById('midiForm').onsubmit = function(event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        const queryString = new URLSearchParams(formData).toString();
-        fetch('/generate_midi?' + queryString)
-          .then(response => response.json())
-          .then(data => {
-            if (data.error) {
-              alert(data.error);
-            } else {
-              document.getElementById('midiPreview').style.display = 'block';
-              const midiUrl = data.midi_url;
-              document.getElementById('midiPlayer').src = midiUrl;
-              document.getElementById('downloadButton').onclick = function() {
-                window.location.href = midiUrl;
-              };
-            }
-          })
-          .catch(error => console.error('Error:', error));
-      };
+        document.querySelector('form').onsubmit = function(event) {
+            event.preventDefault();
+            const params = new URLSearchParams(new FormData(this)).toString();
+            fetch(`/generate_midi?${params}`)
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const previewContainer = document.getElementById('midi-preview');
+                    previewContainer.innerHTML = `
+                        <midi-player src="${url}" sound-font visualizer="#myVisualizer"></midi-player>
+                        <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
+                        <a href="${url}" download="generated_midi.midi" class="btn waves-effect waves-light"><i class="fas fa-download"></i> Download MIDI</a>
+                    `;
+                });
+        };
     </script>
-  </body>
+</body>
 </html>
