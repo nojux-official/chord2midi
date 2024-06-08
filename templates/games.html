@@ -54,14 +54,10 @@
                             </select>
                             <label for="tonation">Tonation</label>
                         </div>
-                        <div class="input-field col s12">
-                            <input id="quiz-count" type="number" min="1" max="10" value="5">
-                            <label for="quiz-count">Number of Quizzes</label>
-                            <div id="midiPreview" class="center-align" style="margin-top: 20px; display:none;">
-                                <midi-player id="midiPlayer" sound-font visualizer="#myVisualizer"></midi-player>
-                                <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
-                                <button id="downloadButton"><i class="fas fa-download"></i> Download MIDI</button>
-                            </div>
+                        <div id="midiPreview" class="center-align" style="margin-top: 20px; display:none;">
+                            <midi-player id="midiPlayer" sound-font visualizer="#myVisualizer"></midi-player>
+                            <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
+                            <button id="downloadButton"><i class="fas fa-download"></i> Download MIDI</button>
                         </div>
                     </div>
                 </form>
@@ -89,7 +85,6 @@
         // Handle start game button click
         document.getElementById('start-game').addEventListener('click', function () {
             var tonation = document.getElementById('tonation').value;
-            var quizCount = parseInt(document.getElementById('quiz-count').value);
 
             // Generate random chord degrees
             var chordDegrees = [];
