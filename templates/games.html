@@ -59,6 +59,20 @@
                             <midi-player id="midiPlayer" sound-font visualizer="#myVisualizer"></midi-player>
                         </div>
                     </div>
+                    <div id="userInput" class="row" style="display:none;">
+                        <div class="input-field col s2 offset-s1">
+                            <input id="code1" type="text" class="code-input" maxlength="1">
+                        </div>
+                        <div class="input-field col s2">
+                            <input id="code2" type="text" class="code-input" maxlength="1">
+                        </div>
+                        <div class="input-field col s2">
+                            <input id="code3" type="text" class="code-input" maxlength="1">
+                        </div>
+                        <div class="input-field col s2">
+                            <input id="code4" type="text" class="code-input" maxlength="1">
+                        </div>
+                    </div>
                     
                 </form>
             </div>
@@ -80,6 +94,19 @@
             // Initialize select dropdown
             var selectElems = document.querySelectorAll('select');
             var instances = M.FormSelect.init(selectElems);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var inputs = document.querySelectorAll('.code-input');
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', () => {
+                    if (input.value.length === input.maxLength) {
+                        if (index < inputs.length - 1) {
+                            inputs[index + 1].focus();
+                        }
+                    }
+                });
+            });
         });
 
         // Handle start game button click
@@ -105,6 +132,8 @@
                         document.getElementById('midiPreview').style.display = 'block';
                         const midiUrl = data.midi_url;
                         document.getElementById('midiPlayer').src = midiUrl;
+
+                        document.getElementById('userInput').style.display = 'block';
                     }
                 })
                 .catch(error => console.error('Error:', error));
