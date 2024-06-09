@@ -24,7 +24,8 @@
 
 <body>
     <!-- Tone.js and Magenta.js -->
-    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
+    <script
+        src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
 
     <div class="container">
         <h1 class="center-align"><i class="fas fa-gamepad"></i> Games</h1>
@@ -34,7 +35,8 @@
                     <div class="card-image">
                         <img src="https://via.placeholder.com/300x200" alt="Game Image">
                         <span class="card-title">Guess Progression</span>
-                        <a class="btn-floating halfway-fab waves-effect waves-light red modal-trigger" href="#game1-modal">
+                        <a class="btn-floating halfway-fab waves-effect waves-light red modal-trigger"
+                            href="#game1-modal">
                             <i class="fas fa-info"></i>
                         </a>
                     </div>
@@ -81,7 +83,9 @@
                         <div class="input-field col s2">
                             <input id="code4" type="text" class="code-input" maxlength="1">
                         </div>
+                        <button id="check-guess" class="waves-effect waves-light btn">Check Guess</button>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -94,7 +98,9 @@
     <!-- Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        var chordDegrees = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
             // Initialize Materialize components
             var modals = document.querySelectorAll('.modal');
             M.Modal.init(modals);
@@ -113,11 +119,11 @@
             });
 
             // Handle start game button click
-            document.getElementById('start-game').addEventListener('click', function() {
+            document.getElementById('start-game').addEventListener('click', function () {
                 var tonation = document.getElementById('tonation').value;
 
                 // Generate random chord degrees
-                var chordDegrees = [];
+                chordDegrees = [];
                 for (var i = 0; i < 4; i++) {
                     chordDegrees.push(Math.floor(Math.random() * 7) + 1);
                 }
@@ -140,6 +146,32 @@
                     })
                     .catch(error => console.error('Error:', error));
             });
+        });
+
+        document.getElementById('check-guess').addEventListener('click', function () {
+            // Get the entered digits
+            var enteredDigits = [
+                document.getElementById('code1').value,
+                document.getElementById('code2').value,
+                document.getElementById('code3').value,
+                document.getElementById('code4').value
+            ];
+
+            // Compare the entered digits with the generated progression
+            var correct = true;
+            for (var i = 0; i < chordDegrees.length; i++) {
+                if (parseInt(enteredDigits[i]) !== chordDegrees[i]) {
+                    correct = false;
+                    break;
+                }
+            }
+
+            // Provide feedback to the user
+            if (correct) {
+                alert('Congratulations! Your guess is correct.');
+            } else {
+                alert('Oops! Your guess is incorrect. Try again.');
+            }
         });
     </script>
 </body>
