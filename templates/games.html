@@ -9,13 +9,23 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <!-- Font Awesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .code-input {
+            text-align: center;
+            font-size: 24px;
+        }
+
+        #midiPreview,
+        #userInput {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
-     <!-- Tone.js and Magenta.js -->
-     <script
-     src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
-     
+    <!-- Tone.js and Magenta.js -->
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
+
     <div class="container">
         <h1 class="center-align"><i class="fas fa-gamepad"></i> Games</h1>
         <div class="row">
@@ -24,8 +34,7 @@
                     <div class="card-image">
                         <img src="https://via.placeholder.com/300x200" alt="Game Image">
                         <span class="card-title">Guess Progression</span>
-                        <a class="btn-floating halfway-fab waves-effect waves-light red modal-trigger"
-                            href="#game1-modal">
+                        <a class="btn-floating halfway-fab waves-effect waves-light red modal-trigger" href="#game1-modal">
                             <i class="fas fa-info"></i>
                         </a>
                     </div>
@@ -42,7 +51,7 @@
         <div class="modal-content">
             <h4>Guess Progression</h4>
             <div class="row">
-                <form class="col s12">
+                <form id="guess-progression-form" class="col s12">
                     <div class="row">
                         <div class="input-field col s12">
                             <select id="tonation">
@@ -55,11 +64,11 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div id="midiPreview" class="center-align center-align col s12" style="display:none;">
+                        <div id="midiPreview" class="center-align col s12">
                             <midi-player id="midiPlayer" sound-font visualizer="#myVisualizer"></midi-player>
                         </div>
                     </div>
-                    <div id="userInput" class="row" style="display:none;">
+                    <div id="userInput" class="row">
                         <div class="input-field col s2 offset-s1">
                             <input id="code1" type="text" class="code-input" maxlength="1">
                         </div>
@@ -73,7 +82,7 @@
                             <input id="code4" type="text" class="code-input" maxlength="1">
                         </div>
                     </div>
-                    
+
                 </form>
             </div>
         </div>
@@ -85,58 +94,53 @@
 
     <!-- Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <!-- Initialize Modals -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var elems = document.querySelectorAll('.modal');
-            var instances = M.Modal.init(elems);
-
-            // Initialize select dropdown
-            var selectElems = document.querySelectorAll('select');
-            var instances = M.FormSelect.init(selectElems);
-        });
-
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Materialize components
+            var modals = document.querySelectorAll('.modal');
+            M.Modal.init(modals);
+
+            var selects = document.querySelectorAll('select');
+            M.FormSelect.init(selects);
+
+            // Handle input focus
             var inputs = document.querySelectorAll('.code-input');
             inputs.forEach((input, index) => {
                 input.addEventListener('input', () => {
-                    if (input.value.length === input.maxLength) {
-                        if (index < inputs.length - 1) {
-                            inputs[index + 1].focus();
-                        }
+                    if (input.value.length === input.maxLength && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
                     }
                 });
             });
-        });
 
-        // Handle start game button click
-        document.getElementById('start-game').addEventListener('click', function () {
-            var tonation = document.getElementById('tonation').value;
+            // Handle start game button click
+            document.getElementById('start-game').addEventListener('click', function() {
+                var tonation = document.getElementById('tonation').value;
 
-            // Generate random chord degrees
-            var chordDegrees = [];
-            for (var i = 0; i < 4; i++) {
-                chordDegrees.push(Math.floor(Math.random() * 7) + 1);
-            }
+                // Generate random chord degrees
+                var chordDegrees = [];
+                for (var i = 0; i < 4; i++) {
+                    chordDegrees.push(Math.floor(Math.random() * 7) + 1);
+                }
 
-            // Log generated chord degrees
-            console.log('Generated Chord Degrees:', chordDegrees);
+                // Log generated chord degrees
+                console.log('Generated Chord Degrees:', chordDegrees);
 
-            // Request to generate MIDI file for the generated chords
-            fetch(`/generate_midi?scale_root=${tonation}&chord_degrees=${chordDegrees.join(',')}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
-                        document.getElementById('midiPreview').style.display = 'block';
-                        const midiUrl = data.midi_url;
-                        document.getElementById('midiPlayer').src = midiUrl;
-
-                        document.getElementById('userInput').style.display = 'block';
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+                // Request to generate MIDI file for the generated chords
+                fetch(`/generate_midi?scale_root=${tonation}&chord_degrees=${chordDegrees.join(',')}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            document.getElementById('midiPreview').style.display = 'block';
+                            document.getElementById('userInput').style.display = 'block';
+                            const midiUrl = data.midi_url;
+                            document.getElementById('midiPlayer').src = midiUrl;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
         });
     </script>
 </body>
