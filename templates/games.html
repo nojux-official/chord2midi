@@ -53,12 +53,13 @@
                             </select>
                             <label for="tonation">Tonation</label>
                         </div>
-                        <div id="midiPreview" class="center-align" style="margin-top: 20px; display:none;">
+                    </div>
+                    <div class="row">
+                        <div id="midiPreview" class="center-align center-align col s12" style="display:none;">
                             <midi-player id="midiPlayer" sound-font visualizer="#myVisualizer"></midi-player>
-                            <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
-                            <button id="downloadButton"><i class="fas fa-download"></i> Download MIDI</button>
                         </div>
                     </div>
+                    
                 </form>
             </div>
         </div>
@@ -104,9 +105,6 @@
                         document.getElementById('midiPreview').style.display = 'block';
                         const midiUrl = data.midi_url;
                         document.getElementById('midiPlayer').src = midiUrl;
-                        document.getElementById('downloadButton').onclick = function () {
-                            window.location.href = midiUrl;
-                        };
                     }
                 })
                 .catch(error => console.error('Error:', error));
