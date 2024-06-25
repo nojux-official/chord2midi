@@ -180,11 +180,10 @@
                 ];
 
                 // Compare the entered digits with the generated progression
-                var correct = true;
+                var correctCount = 0;
                 for (var i = 0; i < chordDegrees.length; i++) {
-                    if (parseInt(enteredDigits[i]) !== chordDegrees[i]) {
-                        correct = false;
-                        break;
+                    if (parseInt(enteredDigits[i]) === chordDegrees[i]) {
+                        correctCount++;
                     }
                 }
 
@@ -201,12 +200,13 @@
                 }
 
                 // Provide feedback to the user with a toast message
-                if (correct) {
-                    M.toast({ html: 'Congratulations! Your guess is correct.', classes: 'green' });
+                if (correctCount === chordDegrees.length) {
+                    M.toast({ html: `Congratulations! Your guess is correct.`, classes: 'green' });
                 } else {
-                    M.toast({ html: 'Oops! Your guess is incorrect. Try again.', classes: 'red' });
+                    M.toast({ html: `Oops! Your guess is incorrect. You got ${correctCount} out of 4 correct.`, classes: 'red' });
                 }
             });
+
 
             // Handle reveal answer button click
             document.getElementById('reveal-answer').addEventListener('click', function () {
