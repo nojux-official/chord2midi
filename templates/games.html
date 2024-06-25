@@ -155,10 +155,19 @@
                             document.getElementById('userInput').style.display = 'block';
                             const midiUrl = data.midi_url;
                             document.getElementById('midiPlayer').src = midiUrl;
+
+                            // Remove correct and incorrect classes from input fields
+                            var inputs = document.querySelectorAll('.code-input');
+                            inputs.forEach(input => {
+                                input.classList.remove('correct');
+                                input.classList.remove('incorrect');
+                                input.value = '';
+                            });
                         }
                     })
                     .catch(error => console.error('Error:', error));
             });
+
 
             // Handle check guess button click
             document.getElementById('check-guess').addEventListener('click', function () {
