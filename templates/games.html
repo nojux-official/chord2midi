@@ -15,6 +15,16 @@
             font-size: 24px;
         }
 
+        .correct {
+            border-bottom: 1px solid #2e7d32 !important;
+            box-shadow: 0 1px 0 0 #2e7d32 !important;
+        }
+
+        .incorrect {
+            border-bottom: 1px solid #c62828 !important;
+            box-shadow: 0 1px 0 0 #c62828 !important;
+        }
+
         #midiPreview,
         #userInput {
             display: none;
@@ -98,6 +108,7 @@
     <!-- Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
+        // Declare chordDegrees globally
         var chordDegrees = [];
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -122,8 +133,10 @@
             document.getElementById('start-game').addEventListener('click', function () {
                 var tonation = document.getElementById('tonation').value;
 
-                // Generate random chord degrees
+                // Clear previous chord degrees
                 chordDegrees = [];
+
+                // Generate random chord degrees
                 for (var i = 0; i < 4; i++) {
                     chordDegrees.push(Math.floor(Math.random() * 7) + 1);
                 }
@@ -146,33 +159,47 @@
                     })
                     .catch(error => console.error('Error:', error));
             });
-        });
 
-        document.getElementById('check-guess').addEventListener('click', function () {
-            // Get the entered digits
-            var enteredDigits = [
-                document.getElementById('code1').value,
-                document.getElementById('code2').value,
-                document.getElementById('code3').value,
-                document.getElementById('code4').value
-            ];
+            // Handle check guess button click
+            document.getElementById('check-guess').addEventListener('click', function () {
+                // Get the entered digits
+                var enteredDigits = [
+                    document.getElementById('code1').value,
+                    document.getElementById('code2').value,
+                    document.getElementById('code3').value,
+                    document.getElementById('code4').value
+                ];
 
-            // Compare the entered digits with the generated progression
-            var correct = true;
-            for (var i = 0; i < chordDegrees.length; i++) {
-                if (parseInt(enteredDigits[i]) !== chordDegrees[i]) {
-                    correct = false;
-                    break;
+                // Compare the entered digits with the generated progression
+                var correct = true;
+                for (var i = 0; i < chordDegrees.length; i++) {
+                    if (parseInt(enteredDigits[i]) !== chordDegrees[i]) {
+                        correct = false;
+                        break;
+                    }
                 }
-            }
 
-            // Provide feedback to the user
-            if (correct) {
-                alert('Congratulations! Your guess is correct.');
-            } else {
-                alert('Oops! Your guess is incorrect. Try again.');
-            }
+                // Provide feedback to the user by changing input field colors
+                for (var i = 0; i < chordDegrees.length; i++) {
+                    var inputField = document.getElementById('code' + (i + 1));
+                    if (parseInt(enteredDigits[i]) === chordDegrees[i]) {
+                        inputField.classList.remove('incorrect');
+                        inputField.classList.add('correct');
+                    } else {
+                        inputField.classList.remove('correct');
+                        inputField.classList.add('incorrect');
+                    }
+                }
+
+                // Provide feedback to the user with an alert
+                if (correct) {
+                    alert('Congratulations! Your guess is correct.');
+                } else {
+                    alert('Oops! Your guess is incorrect. Try again.');
+                }
+            });
         });
+
     </script>
 </body>
 
