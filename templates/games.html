@@ -200,11 +200,11 @@
                     }
                 }
 
-                // Provide feedback to the user with an alert
+                // Provide feedback to the user with a toast message
                 if (correct) {
-                    alert('Congratulations! Your guess is correct.');
+                    M.toast({ html: 'Congratulations! Your guess is correct.', classes: 'green' });
                 } else {
-                    alert('Oops! Your guess is incorrect. Try again.');
+                    M.toast({ html: 'Oops! Your guess is incorrect. Try again.', classes: 'red' });
                 }
             });
 
