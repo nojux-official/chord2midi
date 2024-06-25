@@ -93,15 +93,15 @@
                         <div class="input-field col s2">
                             <input id="code4" type="text" class="code-input" maxlength="1">
                         </div>
-                        <button id="check-guess" class="waves-effect waves-light btn">Check Guess</button>
                     </div>
-
                 </form>
             </div>
         </div>
         <div class="modal-footer">
             <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
             <a href="#!" id="start-game" class="waves-effect waves-light btn">Start Game</a>
+            <a href="#!" id="check-guess" class="waves-effect waves-light btn">Check Guess</a>
+            <a href="#!" id="reveal-answer" class="waves-effect waves-light btn">Reveal Answer</a>
         </div>
     </div>
 
@@ -198,8 +198,18 @@
                     alert('Oops! Your guess is incorrect. Try again.');
                 }
             });
-        });
 
+            // Handle reveal answer button click
+            document.getElementById('reveal-answer').addEventListener('click', function () {
+                // Display the correct chord progression in the input fields
+                for (var i = 0; i < chordDegrees.length; i++) {
+                    var inputField = document.getElementById('code' + (i + 1));
+                    inputField.value = chordDegrees[i];
+                    inputField.classList.remove('incorrect');
+                    inputField.classList.add('correct');
+                }
+            });
+        });
     </script>
 </body>
 
