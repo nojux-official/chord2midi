@@ -144,6 +144,21 @@
                 // Log generated chord degrees
                 console.log('Generated Chord Degrees:', chordDegrees);
 
+                // Reset input fields and classes
+                var inputs = document.querySelectorAll('.code-input');
+                inputs.forEach(input => {
+                    input.value = '';
+                    input.classList.remove('correct');
+                    input.classList.remove('incorrect');
+                });
+
+                // Show the Check Guess and Reveal Answer buttons if hidden
+                document.getElementById('check-guess').style.display = 'inline-block';
+                document.getElementById('reveal-answer').style.display = 'inline-block';
+
+                // Hide any success messages or other elements (if applicable)
+                // Example: document.getElementById('success-message').style.display = 'none';
+
                 // Request to generate MIDI file for the generated chords
                 fetch(`/generate_midi?scale_root=${tonation}&chord_degrees=${chordDegrees.join(',')}`)
                     .then(response => response.json())
@@ -155,14 +170,6 @@
                             document.getElementById('userInput').style.display = 'block';
                             const midiUrl = data.midi_url;
                             document.getElementById('midiPlayer').src = midiUrl;
-
-                            // Remove correct and incorrect classes from input fields
-                            var inputs = document.querySelectorAll('.code-input');
-                            inputs.forEach(input => {
-                                input.classList.remove('correct');
-                                input.classList.remove('incorrect');
-                                input.value = '';
-                            });
                         }
                     })
                     .catch(error => console.error('Error:', error));
@@ -202,11 +209,13 @@
                 // Provide feedback to the user with a toast message
                 if (correctCount === chordDegrees.length) {
                     M.toast({ html: `Congratulations! Your guess is correct.`, classes: 'green' });
+                    // Hide the check and reveal buttons
+                    document.getElementById('check-guess').style.display = 'none';
+                    document.getElementById('reveal-answer').style.display = 'none';
                 } else {
                     M.toast({ html: `Oops! Your guess is incorrect. You got ${correctCount} out of 4 correct.`, classes: 'red' });
                 }
             });
-
 
             // Handle reveal answer button click
             document.getElementById('reveal-answer').addEventListener('click', function () {
@@ -217,6 +226,10 @@
                     inputField.classList.remove('incorrect');
                     inputField.classList.add('correct');
                 }
+
+                // Hide the check and reveal buttons
+                document.getElementById('check-guess').style.display = 'none';
+                document.getElementById('reveal-answer').style.display = 'none';
             });
         });
     </script>
