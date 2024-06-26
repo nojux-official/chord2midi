@@ -127,6 +127,12 @@
                         inputs[index + 1].focus();
                     }
                 });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
             });
 
             // Handle start game button click
