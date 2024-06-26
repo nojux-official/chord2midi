@@ -134,6 +134,10 @@
                         inputs[index - 1].focus();
                     }
                 });
+
+                input.addEventListener('focus', () => {
+                    input.select(); // Select the content of the input field when it gains focus
+                });
             });
 
             // Handle start game button click
