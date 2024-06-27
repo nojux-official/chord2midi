@@ -44,7 +44,9 @@ def generate_midi():
     
     scale_root_midi = get_scale_root(scale_root)
     
-    create_midi(scale_root_midi, chord_degrees, chord_types, output_file, chord_duration)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, output_file)
+    create_midi(scale_root_midi, chord_degrees, chord_types, file_path, chord_duration)
     
     midi_url = url_for('get_midi_file', filename=output_file)
     return jsonify({'midi_url': midi_url})
