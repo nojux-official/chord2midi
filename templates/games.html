@@ -55,6 +55,21 @@
                     </div>
                 </div>
             </div>
+            <div class="col s12 m6 l4">
+                <div class="card">
+                    <div class="card-image">
+                        <img src="https://via.placeholder.com/300x200" alt="Game Image">
+                        <span class="card-title">Identify the tonic chord</span>
+                        <a class="btn-floating halfway-fab waves-effect waves-light red modal-trigger"
+                            href="#game2-modal">
+                            <i class="fas fa-info"></i>
+                        </a>
+                    </div>
+                    <div class="card-content">
+                        <p>Identify the tonic chord of the scale in this fun game!</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -105,6 +120,53 @@
         </div>
     </div>
 
+    <!-- Guess the I Degree Modal Structure -->
+    <div id="game2-modal" class="modal">
+        <div class="modal-content">
+            <h4>Guess the I Degree</h4>
+            <div class="row">
+                <form id="guess-degree-form" class="col s12">
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <select id="tonation2">
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                                <option value="E">E</option>
+                                <!-- Add more tonations as needed -->
+                            </select>
+                            <label for="tonation2">Tonation</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div id="midiPreview2" class="center-align col s12">
+                            <midi-player id="midiPlayer2" sound-font visualizer="#myVisualizer2"></midi-player>
+                        </div>
+                    </div>
+                    <div id="userInput2" class="row center-align">
+                        <div class="col s3 offset-s3">
+                            <button class="btn degree-button" data-degree="1">1</button>
+                        </div>
+                        <div class="col s3">
+                            <button class="btn degree-button" data-degree="2">2</button>
+                        </div>
+                        <div class="col s3 offset-s3">
+                            <button class="btn degree-button" data-degree="3">3</button>
+                        </div>
+                        <div class="col s3">
+                            <button class="btn degree-button" data-degree="4">4</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+            <a href="#!" id="start-game2" class="waves-effect waves-light btn">Start Game</a>
+            <a href="#!" id="check-guess2" class="waves-effect waves-light btn">Check Guess</a>
+            <a href="#!" id="reveal-answer2" class="waves-effect waves-light btn">Reveal Answer</a>
+        </div>
+    </div>
+
     <!-- Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
@@ -145,7 +207,7 @@
                 });
             });
 
-            // Handle start game button click
+            // Handle start game button click for Guess Progression
             document.getElementById('start-game').addEventListener('click', function () {
                 var tonation = document.getElementById('tonation').value;
 
@@ -191,8 +253,7 @@
                     .catch(error => console.error('Error:', error));
             });
 
-
-            // Handle check guess button click
+            // Handle check guess button click for Guess Progression
             document.getElementById('check-guess').addEventListener('click', function () {
                 // Get the entered digits
                 var enteredDigits = [
@@ -233,7 +294,7 @@
                 }
             });
 
-            // Handle reveal answer button click
+            // Handle reveal answer button click for Guess Progression
             document.getElementById('reveal-answer').addEventListener('click', function () {
                 // Display the correct chord progression in the input fields
                 for (var i = 0; i < chordDegrees.length; i++) {
@@ -246,6 +307,77 @@
                 // Hide the check and reveal buttons
                 document.getElementById('check-guess').style.display = 'none';
                 document.getElementById('reveal-answer').style.display = 'none';
+            });
+
+            // Handle start game button click for Guess the I Degree
+            document.getElementById('start-game2').addEventListener('click', function () {
+                var tonation = document.getElementById('tonation2').value;
+
+                // Clear previous chord degrees
+                chordDegrees = [];
+
+                // Generate random chord degrees
+                for (var i = 0; i < 4; i++) {
+                    chordDegrees.push(Math.floor(Math.random() * 7) + 1);
+                }
+
+                // Log generated chord degrees
+                console.log('Generated Chord Degrees:', chordDegrees);
+
+                // Reset button classes
+                var buttons = document.querySelectorAll('.degree-button');
+                buttons.forEach(button => {
+                    button.classList.remove('correct');
+                    button.classList.remove('incorrect');
+                });
+
+                // Show the Check Guess and Reveal Answer buttons if hidden
+                document.getElementById('check-guess2').style.display = 'inline-block';
+                document.getElementById('reveal-answer2').style.display = 'inline-block';
+
+                // Request to generate MIDI file for the generated degree
+                fetch(`/generate_midi?scale_root=${tonation}&chord_degrees=${chordDegrees.join(',')}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            document.getElementById('midiPreview2').style.display = 'block';
+                            document.getElementById('userInput2').style.display = 'block';
+                            const midiUrl = data.midi_url;
+                            document.getElementById('midiPlayer2').src = midiUrl;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+
+            // Add event listeners for degree buttons
+            document.querySelectorAll('.degree-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    var enteredDegree = parseInt(button.getAttribute('data-degree'));
+
+                    // Compare the entered degree with the generated degree
+                    if (enteredDegree === correctDegree) {
+                        button.classList.add('correct');
+                        M.toast({ html: `Congratulations! Your guess is correct.`, classes: 'green' });
+                        // Hide the check and reveal buttons
+                        document.getElementById('check-guess2').style.display = 'none';
+                        document.getElementById('reveal-answer2').style.display = 'none';
+                    } else {
+                        button.classList.add('incorrect');
+                        M.toast({ html: `Oops! Your guess is incorrect.`, classes: 'red' });
+                    }
+                });
+            });
+
+            // Handle check guess button click for Guess the tonic chord
+            document.getElementById('check-guess2').addEventListener('click', function () {
+                
+            });
+
+            // Handle reveal answer button click for Guess the tonic chord
+            document.getElementById('reveal-answer2').addEventListener('click', function () {
+                
             });
         });
     </script>
