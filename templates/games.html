@@ -379,7 +379,20 @@
 
             // Handle reveal answer button click for Identify the tonic chord
             document.getElementById('reveal-answer2').addEventListener('click', function () {
-                
+                // Find the position of the tonic degree
+                let tonicIndex = chordDegrees.indexOf(1);
+
+                // Show the correct tonic chord degree in a toast
+                M.toast({
+                    html: `The tonic chord is at position ${tonicIndex + 1}.`,
+                    classes: 'blue'
+                });
+
+                // Optionally list the entire chord progression
+                M.toast({
+                    html: `Chord progression: ${chordDegrees.join(', ')}`,
+                    classes: 'blue'
+                });
             });
         });
     </script>
