@@ -316,9 +316,18 @@
                 // Clear previous chord degrees
                 chordDegrees = [];
 
-                // Generate random chord degrees
+                // Generate random chord degrees, ensuring one of them is the 1st degree
+                let firstDegreePosition = Math.floor(Math.random() * 4); // Random position for the 1st degree
                 for (var i = 0; i < 4; i++) {
-                    chordDegrees.push(Math.floor(Math.random() * 7) + 1);
+                    if (i === firstDegreePosition) {
+                        chordDegrees.push(1); // Set the 1st degree
+                    } else {
+                        let randomDegree;
+                        do {
+                            randomDegree = Math.floor(Math.random() * 7) + 1;
+                        } while (randomDegree === 1); // Ensure no other chord is the 1st degree
+                        chordDegrees.push(randomDegree);
+                    }
                 }
 
                 // Log generated chord degrees
