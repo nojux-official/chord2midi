@@ -162,7 +162,6 @@
         <div class="modal-footer">
             <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
             <a href="#!" id="start-game2" class="waves-effect waves-light btn">Start Game</a>
-            <a href="#!" id="check-guess2" class="waves-effect waves-light btn">Check Guess</a>
             <a href="#!" id="reveal-answer2" class="waves-effect waves-light btn">Reveal Answer</a>
         </div>
     </div>
@@ -341,7 +340,6 @@
                 });
 
                 // Show the Check Guess and Reveal Answer buttons if hidden
-                document.getElementById('check-guess2').style.display = 'inline-block';
                 document.getElementById('reveal-answer2').style.display = 'inline-block';
 
                 // Request to generate MIDI file for the generated degree
@@ -377,11 +375,6 @@
                         M.toast({ html: `Oops! Your guess is incorrect.`, classes: 'red' });
                     }
                 });
-            });
-
-            // Handle check guess button click for Identify the tonic chord
-            document.getElementById('check-guess2').addEventListener('click', function () {
-                
             });
 
             // Handle reveal answer button click for Identify the tonic chord
