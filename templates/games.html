@@ -366,7 +366,7 @@
                     var enteredDegree = parseInt(button.getAttribute('data-degree'));
 
                     // Compare the entered degree with the generated degree
-                    if (enteredDegree === correctDegree) {
+                    if (enteredDegree === 1) { // Check if the guessed degree is the 1st degree
                         button.classList.add('correct');
                         M.toast({ html: `Congratulations! Your guess is correct.`, classes: 'green' });
                         // Hide the check and reveal buttons
