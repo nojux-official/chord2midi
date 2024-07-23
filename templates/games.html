@@ -148,6 +148,7 @@
                     <div class="row">
                         <div class="input-field col s12">
                             <select id="tonation2">
+                                <option value="Random">Random</option>
                                 <option value="C">C</option>
                                 <option value="Db">Db</option>
                                 <option value="D">D</option>
@@ -211,6 +212,9 @@
         var chordDegrees = [];
 
         document.addEventListener('DOMContentLoaded', function () {
+            // Possible tonations
+            var tonations = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "Cm", "Dbm", "Dm", "Ebm", "Em", "Fm", "Gbm", "Gm", "Abm", "Am", "Bbm", "Bm"];
+
             // Initialize Materialize components
             var modals = document.querySelectorAll('.modal');
             M.Modal.init(modals);
@@ -345,10 +349,15 @@
                 document.getElementById('check-guess').style.display = 'none';
                 document.getElementById('reveal-answer').style.display = 'none';
             });
-
+            
             // Handle start game button click for Identify the Tonic Degree
             document.getElementById('start-game2').addEventListener('click', function () {
                 var tonation = document.getElementById('tonation2').value;
+
+                // Select random tonation if "Random" is chosen
+                if (tonation === 'Random') {
+                    tonation = tonations[Math.floor(Math.random() * tonations.length)];
+                }
 
                 // Clear previous chord degrees
                 chordDegrees = [];
