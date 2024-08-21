@@ -70,6 +70,21 @@
                     </div>
                 </div>
             </div>
+            <div class="col s12 m6 l4">
+                <div class="card">
+                    <div class="card-image">
+                        <img src="https://via.placeholder.com/300x200" alt="Game Image">
+                        <span class="card-title">Identify the tonic chord</span>
+                        <a class="btn-floating halfway-fab waves-effect waves-light red modal-trigger"
+                            href="#game2-modal">
+                            <i class="fas fa-info"></i>
+                        </a>
+                    </div>
+                    <div class="card-content">
+                        <p>Identify the tonic chord of the scale in this fun game!</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -210,6 +225,8 @@
     <script>
         // Declare chordDegrees globally
         var chordDegrees = [];
+
+        var firstDegreePosition = -1;
 
         document.addEventListener('DOMContentLoaded', function () {
             // Possible tonations
@@ -363,7 +380,7 @@
                 chordDegrees = [];
 
                 // Generate random chord degrees, ensuring one of them is the 1st degree
-                let firstDegreePosition = Math.floor(Math.random() * 4); // Random position for the 1st degree
+                firstDegreePosition = Math.floor(Math.random() * 4); // Random position for the 1st degree
                 for (var i = 0; i < 4; i++) {
                     if (i === firstDegreePosition) {
                         chordDegrees.push(1); // Set the 1st degree
@@ -411,12 +428,9 @@
                     var enteredDegree = parseInt(button.getAttribute('data-degree'));
 
                     // Compare the entered degree with the generated degree
-                    if (enteredDegree === 1) { // Check if the guessed degree is the 1st degree
+                    if (enteredDegree === firstDegreePosition + 1) { // Check if the guessed degree is the 1st degree
                         button.classList.add('correct');
                         M.toast({ html: `Congratulations! Your guess is correct.`, classes: 'green' });
-                        // Hide the check and reveal buttons
-                        document.getElementById('check-guess2').style.display = 'none';
-                        document.getElementById('reveal-answer2').style.display = 'none';
                     } else {
                         button.classList.add('incorrect');
                         M.toast({ html: `Oops! Your guess is incorrect.`, classes: 'red' });
