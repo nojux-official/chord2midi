@@ -211,6 +211,8 @@
         // Declare chordDegrees globally
         var chordDegrees = [];
 
+        var firstDegreePosition = -1;
+
         document.addEventListener('DOMContentLoaded', function () {
             // Possible tonations
             var tonations = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "Cm", "Dbm", "Dm", "Ebm", "Em", "Fm", "Gbm", "Gm", "Abm", "Am", "Bbm", "Bm"];
@@ -363,7 +365,7 @@
                 chordDegrees = [];
 
                 // Generate random chord degrees, ensuring one of them is the 1st degree
-                let firstDegreePosition = Math.floor(Math.random() * 4); // Random position for the 1st degree
+                firstDegreePosition = Math.floor(Math.random() * 4); // Random position for the 1st degree
                 for (var i = 0; i < 4; i++) {
                     if (i === firstDegreePosition) {
                         chordDegrees.push(1); // Set the 1st degree
@@ -411,7 +413,7 @@
                     var enteredDegree = parseInt(button.getAttribute('data-degree'));
 
                     // Compare the entered degree with the generated degree
-                    if (enteredDegree === 1) { // Check if the guessed degree is the 1st degree
+                    if (enteredDegree === firstDegreePosition + 1) { // Check if the guessed degree is the 1st degree
                         button.classList.add('correct');
                         M.toast({ html: `Congratulations! Your guess is correct.`, classes: 'green' });
                         // Hide the check and reveal buttons
