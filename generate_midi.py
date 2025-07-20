@@ -1,6 +1,7 @@
 import argparse
 import mido
 from mido import MidiFile, MidiTrack, Message
+from itertools import permutations
 
 def get_scale_root(root_input, octave=4):
     """
@@ -100,6 +101,18 @@ def create_midi(scale_root, chord_degrees, chord_types, output_file, chord_durat
     mid.save(output_file)
     print(f'MIDI file saved as {output_file}')
 
+def create_midi_batch(scale_root, chord_degrees, chord_types, chord_duration):
+    items = zip(chord_degrees, chord_types)
+    scale_root_int = get_scale_root(scale_root)
+
+    for permutation in permutations(items):
+        chordsOrd, typesOrd = zip(*permutation)
+
+        filename = auto_generate_filename(scale_root, chordsOrd)
+        
+        create_midi(scale_root_int, chordsOrd, typesOrd, filename, chord_duration)
+        
+
 def auto_generate_filename(scale_root, chord_degrees):
     chord_degrees_str = ''.join(str(deg) for deg in chord_degrees)
     return f"{scale_root.lower()}_{chord_degrees_str}.midi"
@@ -111,15 +124,9 @@ def parse_arguments():
     parser.add_argument('--chord-types', type=str, nargs='*', help='Chord types corresponding to the degrees (e.g., minor major major major)')
     parser.add_argument('--output-file', type=str, default=None, help='Output MIDI file name. If skipped, filename will be generated automatically.')
     parser.add_argument('--chord-duration', type=int, default=960, help='Duration of each chord in ticks. Default is 960 ticks.')
+    parser.add_argument('--batch', action='store_true', help='Generate MIDI files for all permutations of chord degrees and types.')
     
     args = parser.parse_args()
-
-    # Generate filename if not provided
-    if args.output_file is None:
-        args.output_file = auto_generate_filename(args.scale_root, args.chord_degrees)
-
-    # Convert scale root input to MIDI note number
-    args.scale_root = get_scale_root(args.scale_root)
 
     return args
 
@@ -143,4 +150,13 @@ if __name__ == '__main__':
             else:
                 raise ValueError("Unsupported chord degree.")
 
-    create_midi(args.scale_root, args.chord_degrees, chord_types, args.output_file, args.chord_duration)
+    if args.batch:
+        if args.output_file:
+            raise ValueError("Batch mode does not support a single output file.")
+        create_midi_batch(args.scale_root, args.chord_degrees, chord_types, args.chord_duration)
+    else:
+        # Generate filename if not provided
+        if args.output_file is None:
+            args.output_file = auto_generate_filename(args.scale_root, args.chord_degrees)
+        
+        create_midi(args.scale_root, args.chord_degrees, chord_types, args.output_file, args.chord_duration)
