@@ -2,6 +2,8 @@ import os
 import subprocess
 from pathlib import Path
 from typing import List
+from multiprocessing import Pool, cpu_count
+from functools import partial
 
 def midi_to_wav(midi_file: str, soundfont_path: str = "default.sf2", output_path: str = None) -> str:
     """
@@ -44,9 +46,28 @@ def midi_to_wav(midi_file: str, soundfont_path: str = "default.sf2", output_path
     except Exception as e:
         raise RuntimeError(f"An error occurred: {str(e)}")
 
+def convert_with_error_handling(params):
+    """
+    Helper function to handle MIDI to WAV conversion with error handling
+    
+    Args:
+        params (tuple): Tuple containing (midi_file, soundfont_path, output_path)
+    
+    Returns:
+        str or None: Path to converted file if successful, None if failed
+    """
+    try:
+        midi_file, sf_path, out_path = params
+        result = midi_to_wav(midi_file, sf_path, out_path)
+        print(f"Converted: {Path(midi_file).name} → {Path(result).name}")
+        return result
+    except Exception as e:
+        print(f"Failed to convert {Path(midi_file).name}: {str(e)}")
+        return None
+
 def convert_directory(input_dir: str, soundfont_path: str = "default.sf2", output_dir: str = None) -> List[str]:
     """
-    Convert all MIDI files in a directory to WAV
+    Convert all MIDI files in a directory to WAV using parallel processing
     
     Args:
         input_dir (str): Path to the input directory containing MIDI files
@@ -64,28 +85,34 @@ def convert_directory(input_dir: str, soundfont_path: str = "default.sf2", outpu
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
     
-    converted_files = []
     midi_files = list(input_path.glob("*.midi")) + list(input_path.glob("*.mid"))
     
-    for midi_file in midi_files:
-        if output_dir:
-            output_file = str(output_path / midi_file.with_suffix('.wav').name)
-        else:
-            output_file = None
-        
-        try:
-            result = midi_to_wav(str(midi_file), soundfont_path, output_file)
-            converted_files.append(result)
-            print(f"Converted: {midi_file.name} → {Path(result).name}")
-        except Exception as e:
-            print(f"Failed to convert {midi_file.name}: {str(e)}")
+    if not midi_files:
+        print("No MIDI files found in the directory")
+        return []
     
+    # Prepare conversion parameters for each file
+    conversion_params = []
+    for midi_file in midi_files:
+        output_file = str(output_path / midi_file.with_suffix('.wav').name) if output_dir else None
+        conversion_params.append((str(midi_file), soundfont_path, output_file))
+    
+    # Use all available CPU cores
+    num_cores = cpu_count()
+    print(f"\nUsing {num_cores} CPU cores for parallel conversion...")
+    
+    # Convert files in parallel
+    with Pool(num_cores) as pool:
+        results = pool.map(convert_with_error_handling, conversion_params)
+    
+    # Filter out failed conversions
+    converted_files = [f for f in results if f is not None]
     return converted_files
 
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="Convert MIDI files to WAV")
+    parser = argparse.ArgumentParser(description="Convert MIDI files to WAV using parallel processing")
     parser.add_argument("input_dir", help="Directory containing input MIDI files")
     parser.add_argument("--soundfont", default="default.sf2", help="Path to the soundfont file")
     parser.add_argument("--output-dir", help="Directory for output WAV files")
