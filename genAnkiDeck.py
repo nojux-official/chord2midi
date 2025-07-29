@@ -1,0 +1,128 @@
+import genanki
+import random
+import os
+
+# --- Configuration ---
+DECK_NAME = 'Pop Progressions: Ear Training (I-V-vi-IV + Audio)'
+OUTPUT_FILENAME = 'pop_progressions.apkg'
+AUDIO_DIR = 'rec'
+
+def numbersToDegrees(numbers):
+    '''
+    Convert a list of integers to a string of chord degrees
+    e.g., [1, 5, 6, 4] -> "I, V, vi, IV"
+    '''
+    degree_map = {
+        1: 'I',
+        2: 'ii',
+        3: 'iii',
+        4: 'IV',
+        5: 'V',
+        6: 'vi',
+        7: 'vii°'
+    }
+    return ' - '.join(degree_map.get(num, str(num)) for num in numbers)
+def generateCardData():
+    '''
+    list directory of wav files in AUDIO_DIR
+    the filename are in format of "{key}_{chord_degrees}.wav"
+    key is a single letter (C, D, E, F, G, A, B)
+    and chord_degrees is a list of integers (1, 2, 3, 4, 5, 6, 7)
+    based on the chord degrees, generate a list of tuples
+    where each tuple contains the filename and the text meaning
+    file name example "C_1564.wav"
+    '''
+    card_data = []
+    for filename in os.listdir(AUDIO_DIR):
+        if filename.endswith('.wav'):
+            # Extract key and chord degrees from the filename
+            parts = filename[:-4].split('_')  # Remove '.wav' and split by '_'
+            if len(parts) == 2:
+                key = parts[0]  # e.g., 'C'
+                chord_degrees = parts[1]  # e.g., '1564'
+                chord_degrees = [int(d) for d in chord_degrees] 
+                meaning_text = f"{key} - {numbersToDegrees(chord_degrees)}"
+                card_data.append((filename, meaning_text))
+
+    return card_data
+
+
+
+# --- 1. Define a Model (Note Type) ---
+my_model_id = 1607590219
+
+sound_text_model = genanki.Model(
+    my_model_id,
+    'Sound & Text Model',
+    fields=[
+        {'name': 'Sound'},
+        {'name': 'Meaning'},
+    ],
+    templates=[
+        {
+            'name': 'Sound to Text Card',
+            'qfmt': '{{Sound}}',  # Front card: just play the sound
+            'afmt': '{{FrontSide}}<hr id="answer">{{Meaning}}', # Back card: show the sound (again) and the meaning
+        },
+    ],
+    css='''
+        .card {
+            font-family: Arial;
+            font-size: 24px;
+            text-align: center;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .meaning {
+            font-weight: bold;
+            color: #007bff; /* A nice blue for the meaning */
+        }
+    '''
+)
+
+# --- 2. Create a Deck ---
+my_deck_id = 1539206123 # Example hardcoded ID - Replace with your own generated ID
+
+my_deck = genanki.Deck(
+    my_deck_id,
+    DECK_NAME
+)
+
+# --- 3. Prepare Notes and Media Files ---
+# Create a list to store all the sound file paths
+all_media_files = []
+
+# Data for our cards: (sound_filename, text_meaning)
+card_data = generateCardData()
+
+for sound_filename, meaning_text in card_data:
+    # Construct the full path to the audio file
+    audio_file_path = os.path.join(AUDIO_DIR, sound_filename)
+
+    # Check if the audio file exists
+    if not os.path.exists(audio_file_path):
+        print(f"Warning: Audio file not found: {audio_file_path}. Skipping this note.")
+        continue
+
+    # Add the audio file path to our list of media files for the package
+    all_media_files.append(audio_file_path)
+
+    # Create the Anki sound tag for the 'Sound' field
+    anki_sound_tag = f"[sound:{sound_filename}]"
+
+    # Create the Note
+    note = genanki.Note(
+        model=sound_text_model,
+        fields=[anki_sound_tag, meaning_text]
+    )
+    my_deck.add_note(note)
+
+# --- 4. Create a Package and Write to File ---
+my_package = genanki.Package(my_deck)
+my_package.media_files = all_media_files
+
+try:
+    my_package.write_to_file(OUTPUT_FILENAME)
+    print(f"Anki deck '{OUTPUT_FILENAME}' generated successfully with {len(card_data)} notes and {len(all_media_files)} media files!")
+except Exception as e:
+    print(f"Error generating Anki deck: {e}")
