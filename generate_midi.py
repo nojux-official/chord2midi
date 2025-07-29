@@ -115,7 +115,7 @@ def create_midi_batch(scale_root, chord_degrees, chord_types, chord_duration):
 
 def auto_generate_filename(scale_root, chord_degrees):
     chord_degrees_str = ''.join(str(deg) for deg in chord_degrees)
-    return f"{scale_root.lower()}_{chord_degrees_str}.midi"
+    return f"{scale_root.upper()}_{chord_degrees_str}.midi"
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate a MIDI file with a chord progression.')
