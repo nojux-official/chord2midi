@@ -123,3 +123,20 @@ venv.bak/
 
 # Windows specific files
 Thumbs.db
+
+# Midi files
+*.midi
+
+# Anki specific files
+*.apkg
+
+# Media files
+*.wav
+*.sf2
+
+# Other files
+*.drawio
+*.bkp
+*.xlsx
+
+
