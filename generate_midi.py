@@ -52,11 +52,16 @@ def get_chord_notes(scale_root, degree, chord_type='major'):
     
     # Generate the major scale notes starting from the root
     scale_notes = [scale_root]
-    for interval in major_scale_intervals:
-        scale_notes.append(scale_notes[-1] + interval)
+    current_note = scale_root
+    for interval in major_scale_intervals[:-1]:  # Exclude last interval as we only need 7 notes
+        current_note += interval
+        scale_notes.append(current_note)
     
     # Adjust degree to zero-based index
     degree_index = degree - 1
+    
+    # Get the root note for this chord
+    chord_root = scale_notes[degree_index]
 
     if chord_type == 'major':
         # Major triad: root, major third, perfect fifth
@@ -70,14 +75,11 @@ def get_chord_notes(scale_root, degree, chord_type='major'):
     else:
         raise ValueError("Unsupported chord type. Use 'major', 'minor', or 'diminished'.")
 
-    # Calculate the chord notes
-    chord_notes = [(scale_notes[degree_index] + interval) % 12 for interval in chord_intervals]
-
-    # Convert chord notes to MIDI note numbers
-    chord_notes_midi = [(scale_root + note) for note in chord_notes]
+    # Calculate the chord notes based on the chord root
+    chord_notes_midi = [chord_root + interval for interval in chord_intervals]
 
     # Add the bass note an octave lower
-    bass_note = chord_notes_midi[0] - 12
+    bass_note = chord_root - 12
     chord_notes_midi.insert(0, bass_note)
 
     return chord_notes_midi
