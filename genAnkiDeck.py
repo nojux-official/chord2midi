@@ -4,8 +4,8 @@ import os
 
 # --- Configuration ---
 DECK_NAME = 'Pop Progressions: Ear Training (I-V-vi-IV + Audio)'
-OUTPUT_FILENAME = 'pop_progressions.apkg'
-AUDIO_DIR = 'rec'
+OUTPUT_FILENAME = 'pop_progressions_Dmaj_test.apkg'
+AUDIO_DIR = 'rec D'
 
 def numbersToDegrees(numbers):
     '''
@@ -22,6 +22,18 @@ def numbersToDegrees(numbers):
         7: 'vii°'
     }
     return ' - '.join(degree_map.get(num, str(num)) for num in numbers)
+
+def analyzeFileName(filename):
+    parts = filename[:-4].split('_')  # Remove '.wav' and split by '_'
+    if len(parts) == 2:
+        key = parts[0]
+        key = f"{key} major"
+        chord_degrees = parts[1]
+        chord_degrees = [int(d) for d in chord_degrees] 
+        chord_degrees = numbersToDegrees(chord_degrees)
+        # meaning_text = f"{key} - {numbersToDegrees(chord_degrees)}"
+        return filename, key, chord_degrees
+
 def generateCardData():
     '''
     list directory of wav files in AUDIO_DIR
@@ -33,16 +45,11 @@ def generateCardData():
     file name example "C_1564.wav"
     '''
     card_data = []
-    for filename in os.listdir(AUDIO_DIR):
-        if filename.endswith('.wav'):
+    for sound_filename in os.listdir(AUDIO_DIR):
+        if sound_filename.endswith('.wav'):
             # Extract key and chord degrees from the filename
-            parts = filename[:-4].split('_')  # Remove '.wav' and split by '_'
-            if len(parts) == 2:
-                key = parts[0]  # e.g., 'C'
-                chord_degrees = parts[1]  # e.g., '1564'
-                chord_degrees = [int(d) for d in chord_degrees] 
-                meaning_text = f"{key} - {numbersToDegrees(chord_degrees)}"
-                card_data.append((filename, meaning_text))
+            sound_filename, key, meaning_text = analyzeFileName(sound_filename)
+            card_data.append((sound_filename, key, meaning_text))
 
     return card_data
 
@@ -56,12 +63,13 @@ sound_text_model = genanki.Model(
     'Sound & Text Model',
     fields=[
         {'name': 'Sound'},
+        {'name': 'Scale'},
         {'name': 'Meaning'},
     ],
     templates=[
         {
             'name': 'Sound to Text Card',
-            'qfmt': '{{Sound}}',  # Front card: just play the sound
+            'qfmt': '{{Scale}}<br>{{Sound}}',  # Front card: just play the sound
             'afmt': '{{FrontSide}}<hr id="answer">{{Meaning}}', # Back card: show the sound (again) and the meaning
         },
     ],
@@ -95,7 +103,7 @@ all_media_files = []
 # Data for our cards: (sound_filename, text_meaning)
 card_data = generateCardData()
 
-for sound_filename, meaning_text in card_data:
+for sound_filename, key, meaning_text in card_data:
     # Construct the full path to the audio file
     audio_file_path = os.path.join(AUDIO_DIR, sound_filename)
 
@@ -113,7 +121,7 @@ for sound_filename, meaning_text in card_data:
     # Create the Note
     note = genanki.Note(
         model=sound_text_model,
-        fields=[anki_sound_tag, meaning_text]
+        fields=[anki_sound_tag, key, meaning_text]
     )
     my_deck.add_note(note)
 
