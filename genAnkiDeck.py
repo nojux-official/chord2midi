@@ -4,8 +4,8 @@ import os
 
 # --- Configuration ---
 DECK_NAME = 'Pop Progressions: Ear Training (I-V-vi-IV + Audio)'
-OUTPUT_FILENAME = 'pop_progressions_Dmaj_test.apkg'
-AUDIO_DIR = 'rec D'
+OUTPUT_FILENAME = 'pop_progressions_Cmaj.apkg'
+AUDIO_DIR = 'rec C'
 
 def numbersToDegrees(numbers):
     '''
@@ -54,6 +54,16 @@ def generateCardData():
     return card_data
 
 
+def extract_guid_from_filename(sound_filename):
+    """
+    Extract GUID from sound filename (e.g., 'D_1456-hash.wav' -> 'D_1456')
+    Ignores hash part after hyphen and .wav extension
+    """
+    if sound_filename:
+        base_name = sound_filename.split('-')[0]
+        base_name = base_name.replace('.wav', '')
+        return base_name
+    return None
 
 # --- 1. Define a Model (Note Type) ---
 my_model_id = 1607590219
@@ -69,8 +79,8 @@ sound_text_model = genanki.Model(
     templates=[
         {
             'name': 'Sound to Text Card',
-            'qfmt': '{{Scale}}<br>{{Sound}}',  # Front card: just play the sound
-            'afmt': '{{FrontSide}}<hr id="answer">{{Meaning}}', # Back card: show the sound (again) and the meaning
+            'qfmt': '{{Scale}}<br>{{Sound}}',
+            'afmt': '{{FrontSide}}<hr id="answer">{{Meaning}}',
         },
     ],
     css='''
@@ -89,7 +99,7 @@ sound_text_model = genanki.Model(
 )
 
 # --- 2. Create a Deck ---
-my_deck_id = 1539206123 # Example hardcoded ID - Replace with your own generated ID
+my_deck_id = 1539206123
 
 my_deck = genanki.Deck(
     my_deck_id,
@@ -97,31 +107,27 @@ my_deck = genanki.Deck(
 )
 
 # --- 3. Prepare Notes and Media Files ---
-# Create a list to store all the sound file paths
 all_media_files = []
-
-# Data for our cards: (sound_filename, text_meaning)
 card_data = generateCardData()
 
+
 for sound_filename, key, meaning_text in card_data:
-    # Construct the full path to the audio file
     audio_file_path = os.path.join(AUDIO_DIR, sound_filename)
 
-    # Check if the audio file exists
     if not os.path.exists(audio_file_path):
         print(f"Warning: Audio file not found: {audio_file_path}. Skipping this note.")
         continue
 
-    # Add the audio file path to our list of media files for the package
     all_media_files.append(audio_file_path)
 
-    # Create the Anki sound tag for the 'Sound' field
     anki_sound_tag = f"[sound:{sound_filename}]"
-
-    # Create the Note
+    
+    guid = extract_guid_from_filename(sound_filename)
+    
     note = genanki.Note(
         model=sound_text_model,
-        fields=[anki_sound_tag, key, meaning_text]
+        fields=[anki_sound_tag, key, meaning_text],
+        guid=guid
     )
     my_deck.add_note(note)
 
