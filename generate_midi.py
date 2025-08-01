@@ -1,7 +1,8 @@
 import argparse
 import mido
 from mido import MidiFile, MidiTrack, Message
-from itertools import permutations
+from itertools import permutations, product
+import random
 
 def get_scale_root(root_input, octave=4):
     """
@@ -34,14 +35,15 @@ def get_scale_root(root_input, octave=4):
     scale_root = 12 * (octave + 1) + semitone_offset  # Start from C4
     return scale_root
 
-def get_chord_notes(scale_root, degree, chord_type='major'):
+def get_chord_notes(scale_root, degree, chord_type='major', inversion=0):
     """
-    Returns the notes for a specified chord degree in a major scale.
+    Returns the notes for a specified chord degree in a major scale, with optional inversion.
 
     Parameters:
     - scale_root (int): The root note of the scale (as a MIDI note number).
     - degree (int): The degree of the chord in the scale (1 for tonic, 2 for supertonic, etc.).
-    - chord_type (str): The type of chord ('major' or 'minor'). Defaults to 'major'.
+    - chord_type (str): The type of chord ('major', 'minor', or 'diminished'). Defaults to 'major'.
+    - inversion (int): The inversion of the chord (0=root, 1=first, 2=second). Defaults to 0.
 
     Returns:
     - list: A list of MIDI note numbers for the specified chord.
@@ -64,13 +66,10 @@ def get_chord_notes(scale_root, degree, chord_type='major'):
     chord_root = scale_notes[degree_index]
 
     if chord_type == 'major':
-        # Major triad: root, major third, perfect fifth
         chord_intervals = [0, 4, 7]
     elif chord_type == 'minor':
-        # Minor triad: root, minor third, perfect fifth
         chord_intervals = [0, 3, 7]
     elif chord_type == 'diminished':
-        # Diminished triad: root, minor third, diminished fifth
         chord_intervals = [0, 3, 6]
     else:
         raise ValueError("Unsupported chord type. Use 'major', 'minor', or 'diminished'.")
@@ -78,46 +77,63 @@ def get_chord_notes(scale_root, degree, chord_type='major'):
     # Calculate the chord notes based on the chord root
     chord_notes_midi = [chord_root + interval for interval in chord_intervals]
 
+    # Apply inversion: move the lowest note(s) up an octave
+    for i in range(inversion):
+        chord_notes_midi[i] += 12
+
+    # Sort to keep ascending order
+    chord_notes_midi = sorted(chord_notes_midi)
+
     # Add the bass note an octave lower
-    bass_note = chord_root - 12
+    bass_note = chord_notes_midi[0] - 12
     chord_notes_midi.insert(0, bass_note)
 
     return chord_notes_midi
 
-def create_midi(scale_root, chord_degrees, chord_types, output_file, chord_duration):
-    # Create a new MIDI file
+def create_midi(scale_root, chord_degrees, chord_types, output_file, chord_duration, inversions=None):
     mid = MidiFile()
     track = MidiTrack()
     mid.tracks.append(track)
 
-    # Add chords to the track
-    for degree, chord_type in zip(chord_degrees, chord_types):
-        chord_notes = get_chord_notes(scale_root, degree, chord_type)
+    # Always expect inversions as a list/tuple, default to all root position if None
+    if inversions is None:
+        inversions = [0] * len(chord_degrees)
+
+    for degree, chord_type, inversion in zip(chord_degrees, chord_types, inversions):
+        chord_notes = get_chord_notes(scale_root, degree, chord_type, inversion)
         for note in chord_notes:
             track.append(Message('note_on', note=note, velocity=64, time=0))
         track.append(Message('note_off', note=chord_notes[0], velocity=64, time=chord_duration))
         for note in chord_notes[1:]:
             track.append(Message('note_off', note=note, velocity=64, time=0))
 
-    # Save the MIDI file
     mid.save(output_file)
     print(f'MIDI file saved as {output_file}')
 
 def create_midi_batch(scale_root, chord_degrees, chord_types, chord_duration):
-    items = zip(chord_degrees, chord_types)
+    items = list(zip(chord_degrees, chord_types))
     scale_root_int = get_scale_root(scale_root)
+    num_chords = len(chord_degrees)
+    inversion_options = [0, 1, 2]
 
     for permutation in permutations(items):
         chordsOrd, typesOrd = zip(*permutation)
+        # 1. Root position
+        inversions_root = [0] * num_chords
+        filename_root = auto_generate_filename(scale_root, chordsOrd, inversions_root)
+        create_midi(scale_root_int, chordsOrd, typesOrd, filename_root, chord_duration, inversions_root)
+        # 2. Random inversion for each chord
+        inversions_random = [random.choice(inversion_options) for _ in range(num_chords)]
+        filename_random = auto_generate_filename(scale_root, chordsOrd, inversions_random)
+        create_midi(scale_root_int, chordsOrd, typesOrd, filename_random, chord_duration, inversions_random)
 
-        filename = auto_generate_filename(scale_root, chordsOrd)
-        
-        create_midi(scale_root_int, chordsOrd, typesOrd, filename, chord_duration)
-        
-
-def auto_generate_filename(scale_root, chord_degrees):
+def auto_generate_filename(scale_root, chord_degrees, inversions=None):
     chord_degrees_str = ''.join(str(deg) for deg in chord_degrees)
-    return f"{scale_root.upper()}_{chord_degrees_str}.midi"
+    if inversions is not None and any(inv != 0 for inv in inversions):
+        inversions_str = ''.join(str(inv) for inv in inversions)
+        return f"{scale_root.upper()}_{chord_degrees_str}_{inversions_str}.midi"
+    else:
+        return f"{scale_root.upper()}_{chord_degrees_str}.midi"
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate a MIDI file with a chord progression.')

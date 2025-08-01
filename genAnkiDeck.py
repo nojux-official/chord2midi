@@ -25,14 +25,17 @@ def numbersToDegrees(numbers):
 
 def analyzeFileName(filename):
     parts = filename[:-4].split('_')  # Remove '.wav' and split by '_'
-    if len(parts) == 2:
+    if len(parts) >= 2:
         key = parts[0]
         key = f"{key} major"
         chord_degrees = parts[1]
-        chord_degrees = [int(d) for d in chord_degrees] 
-        chord_degrees = numbersToDegrees(chord_degrees)
-        # meaning_text = f"{key} - {numbersToDegrees(chord_degrees)}"
-        return filename, key, chord_degrees
+        chord_degrees_list = [int(d) for d in chord_degrees]
+        inversions_list = [0] * len(chord_degrees_list)
+        if len(parts) >= 3:
+            inversions = parts[2]
+            inversions_list = [int(d) for d in inversions]
+
+        return filename, key, chord_degrees_list, inversions_list
 
 def generateCardData():
     '''
@@ -48,7 +51,14 @@ def generateCardData():
     for sound_filename in os.listdir(AUDIO_DIR):
         if sound_filename.endswith('.wav'):
             # Extract key and chord degrees from the filename
-            sound_filename, key, meaning_text = analyzeFileName(sound_filename)
+            sound_filename, key, chordDegrees, invertions = analyzeFileName(sound_filename)
+            
+            meaning_text = numbersToDegrees(chordDegrees)
+            for degree, inversion in zip(chordDegrees, invertions):
+                if inversion > 0:
+                    meaning_text += f"<br>{numbersToDegrees([degree])}: (Inversion {inversion})"
+                else:
+                    meaning_text += f"<br>{numbersToDegrees([degree])}: (Root Position)"
             card_data.append((sound_filename, key, meaning_text))
 
     return card_data
@@ -98,45 +108,57 @@ sound_text_model = genanki.Model(
     '''
 )
 
-# --- 2. Create a Deck ---
+# --- 2. Create Decks ---
 my_deck_id = 1539206123
-
-my_deck = genanki.Deck(
+my_deck_root = genanki.Deck(
     my_deck_id,
-    DECK_NAME
+    f"{DECK_NAME}::Root Position"
+)
+my_deck_random = genanki.Deck(
+    my_deck_id + 1,
+    f"{DECK_NAME}::Random Inversions"
 )
 
 # --- 3. Prepare Notes and Media Files ---
 all_media_files = []
 card_data = generateCardData()
 
-
-for sound_filename, key, meaning_text in card_data:
+for sound_filename, key, chordDegrees, invertions in [
+    analyzeFileName(f) for f in os.listdir(AUDIO_DIR) if f.endswith('.wav')
+]:
     audio_file_path = os.path.join(AUDIO_DIR, sound_filename)
-
     if not os.path.exists(audio_file_path):
         print(f"Warning: Audio file not found: {audio_file_path}. Skipping this note.")
         continue
-
     all_media_files.append(audio_file_path)
 
+    meaning_text = numbersToDegrees(chordDegrees)
+    for degree, inversion in zip(chordDegrees, invertions):
+        if inversion > 0:
+            meaning_text += f"<br>{numbersToDegrees([degree])}: (Inversion {inversion})"
+        else:
+            meaning_text += f"<br>{numbersToDegrees([degree])}: (Root Position)"
+
     anki_sound_tag = f"[sound:{sound_filename}]"
-    
     guid = extract_guid_from_filename(sound_filename)
-    
     note = genanki.Note(
         model=sound_text_model,
         fields=[anki_sound_tag, key, meaning_text],
         guid=guid
     )
-    my_deck.add_note(note)
+
+    # Add to appropriate subdeck
+    if all(inv == 0 for inv in invertions):
+        my_deck_root.add_note(note)
+    else:
+        my_deck_random.add_note(note)
 
 # --- 4. Create a Package and Write to File ---
-my_package = genanki.Package(my_deck)
+my_package = genanki.Package([my_deck_root, my_deck_random])
 my_package.media_files = all_media_files
 
 try:
     my_package.write_to_file(OUTPUT_FILENAME)
-    print(f"Anki deck '{OUTPUT_FILENAME}' generated successfully with {len(card_data)} notes and {len(all_media_files)} media files!")
+    print(f"Anki deck '{OUTPUT_FILENAME}' generated successfully with {len(all_media_files)} media files!")
 except Exception as e:
     print(f"Error generating Anki deck: {e}")
