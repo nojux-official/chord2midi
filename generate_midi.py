@@ -35,7 +35,7 @@ def get_scale_root(root_input, octave=4):
     scale_root = 12 * (octave + 1) + semitone_offset  # Start from C4
     return scale_root
 
-def get_chord_notes(scale_root, degree, chord_type='major', inversion=0):
+def get_chord_notes(scale_root: int, degree: int, chord_type='major', inversion=0):
     """
     Returns the notes for a specified chord degree in a major scale, with optional inversion.
 
@@ -90,7 +90,7 @@ def get_chord_notes(scale_root, degree, chord_type='major', inversion=0):
 
     return chord_notes_midi
 
-def create_midi(scale_root, chord_degrees, chord_types, output_file, chord_duration, inversions=None):
+def create_midi(scale_root: int, chord_degrees, chord_types, output_file, chord_duration, inversions=None):
     mid = MidiFile()
     track = MidiTrack()
     mid.tracks.append(track)
@@ -177,4 +177,5 @@ if __name__ == '__main__':
         if args.output_file is None:
             args.output_file = auto_generate_filename(args.scale_root, args.chord_degrees)
         
-        create_midi(args.scale_root, args.chord_degrees, chord_types, args.output_file, args.chord_duration)
+        scale_root = get_scale_root(args.scale_root)
+        create_midi(scale_root, args.chord_degrees, chord_types, args.output_file, args.chord_duration)
