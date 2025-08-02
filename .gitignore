@@ -132,6 +132,7 @@ Thumbs.db
 
 # Media files
 *.wav
+*.mp3
 *.sf2
 
 # Other files

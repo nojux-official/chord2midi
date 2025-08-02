@@ -4,8 +4,9 @@ import os
 
 # --- Configuration ---
 DECK_NAME = 'Pop Progressions: Ear Training (I-V-vi-IV + Audio)'
-OUTPUT_FILENAME = 'pop_progressions_Cmaj.apkg'
-AUDIO_DIR = 'rec C'
+OUTPUT_FILENAME = 'pop_progressions.apkg'
+AUDIO_DIR = 'rec'
+CADENCE_AUDIO_DIR = 'cadence'
 
 def numbersToDegrees(numbers):
     '''
@@ -37,31 +38,6 @@ def analyzeFileName(filename):
 
         return filename, key, chord_degrees_list, inversions_list
 
-def generateCardData():
-    '''
-    list directory of wav files in AUDIO_DIR
-    the filename are in format of "{key}_{chord_degrees}.wav"
-    key is a single letter (C, D, E, F, G, A, B)
-    and chord_degrees is a list of integers (1, 2, 3, 4, 5, 6, 7)
-    based on the chord degrees, generate a list of tuples
-    where each tuple contains the filename and the text meaning
-    file name example "C_1564.wav"
-    '''
-    card_data = []
-    for sound_filename in os.listdir(AUDIO_DIR):
-        if sound_filename.endswith('.wav'):
-            # Extract key and chord degrees from the filename
-            sound_filename, key, chordDegrees, invertions = analyzeFileName(sound_filename)
-            
-            meaning_text = numbersToDegrees(chordDegrees)
-            for degree, inversion in zip(chordDegrees, invertions):
-                if inversion > 0:
-                    meaning_text += f"<br>{numbersToDegrees([degree])}: (Inversion {inversion})"
-                else:
-                    meaning_text += f"<br>{numbersToDegrees([degree])}: (Root Position)"
-            card_data.append((sound_filename, key, meaning_text))
-
-    return card_data
 
 
 def extract_guid_from_filename(sound_filename):
@@ -71,7 +47,7 @@ def extract_guid_from_filename(sound_filename):
     """
     if sound_filename:
         base_name = sound_filename.split('-')[0]
-        base_name = base_name.replace('.wav', '')
+        base_name = base_name.replace('.mp3', '')
         return base_name
     return None
 
@@ -85,11 +61,19 @@ sound_text_model = genanki.Model(
         {'name': 'Sound'},
         {'name': 'Scale'},
         {'name': 'Meaning'},
+        {'name': 'Cadence'}, 
     ],
     templates=[
         {
             'name': 'Sound to Text Card',
-            'qfmt': '{{Scale}}<br>{{Sound}}',
+            'qfmt': '''
+                {{Scale}}<br>
+                {{Sound}}<br>
+                <details style="display:inline;">
+                  <summary style="font-size:14px; color:#888; cursor:pointer;">Play cadence</summary>
+                  <span style="font-size:14px;">{{Cadence}}</span>
+                </details>
+            ''',
             'afmt': '{{FrontSide}}<hr id="answer">{{Meaning}}',
         },
     ],
@@ -105,6 +89,7 @@ sound_text_model = genanki.Model(
             font-weight: bold;
             color: #007bff; /* A nice blue for the meaning */
         }
+        a { color: #007bff; text-decoration: underline; cursor: pointer; }
     '''
 )
 
@@ -121,16 +106,27 @@ my_deck_random = genanki.Deck(
 
 # --- 3. Prepare Notes and Media Files ---
 all_media_files = []
-card_data = generateCardData()
 
 for sound_filename, key, chordDegrees, invertions in [
-    analyzeFileName(f) for f in os.listdir(AUDIO_DIR) if f.endswith('.wav')
+    analyzeFileName(f) for f in os.listdir(AUDIO_DIR) if f.endswith('.mp3')
 ]:
     audio_file_path = os.path.join(AUDIO_DIR, sound_filename)
     if not os.path.exists(audio_file_path):
         print(f"Warning: Audio file not found: {audio_file_path}. Skipping this note.")
         continue
     all_media_files.append(audio_file_path)
+
+    # --- Cadence audio ---
+    scale_root = key.split()[0]
+    cadence_filename = f"{scale_root}_1451.wav"
+    cadence_path = os.path.join(CADENCE_AUDIO_DIR, cadence_filename)
+    cadence_field = ""
+    if os.path.exists(cadence_path):
+        if cadence_path not in all_media_files:
+            all_media_files.append(cadence_path)
+        cadence_field = f"[sound:{cadence_filename}]"
+    else:
+        print(f"Warning: Cadence file not found: {cadence_path}")
 
     meaning_text = numbersToDegrees(chordDegrees)
     for degree, inversion in zip(chordDegrees, invertions):
@@ -143,7 +139,7 @@ for sound_filename, key, chordDegrees, invertions in [
     guid = extract_guid_from_filename(sound_filename)
     note = genanki.Note(
         model=sound_text_model,
-        fields=[anki_sound_tag, key, meaning_text],
+        fields=[anki_sound_tag, key, meaning_text, cadence_field],
         guid=guid
     )
 
